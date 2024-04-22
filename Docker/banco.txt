@@ -1,0 +1,46 @@
+create database Produtos;
+drop database Produtos;
+use Produtos;
+
+Create table produto(
+id_produto BIGINT(15) not null,
+codigo_barras varchar(21) not null,
+nome_produto varchar(256) not null,
+data_criacao datetime not null,
+primary key (id_produto, codigo_barras)
+);
+
+Create table situacao_produto(
+id_produto BIGINT(15) not null,
+codigo_situacao int(2) not null,
+data_criacao datetime not null,
+primary key (id_produto, codigo_situacao),
+foreign key (id_produto) references produto(id_produto)
+);
+
+Create table fornecedor(
+id_fornecedor BIGINT(15) not null,
+id_produto BIGINT(15) not null,
+data_criacao datetime not null,
+primary key (id_fornecedor, id_produto),
+foreign key (id_produto) references produto(id_produto)
+);
+
+Create table situacao_fornecedor(
+id_fornecedor BIGINT(15) not null,
+codigo_situacao int(2) not null,
+data_criacao datetime not null,
+primary key (id_fornecedor, codigo_situacao)
+);
+
+drop table situacao_fornecedor;
+
+select * from produto;
+
+select * from situacao_produto;
+
+select * from produto p, situacao_produto s
+where p.id_produto = s.id_produto 
+AND p.id_produto = 2
+Order by s.data_criacao DESC
+limit 1;

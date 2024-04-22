@@ -1,0 +1,1 @@
+docker run --name banco-produtos -e MYSQL_ROOT_PASSWORD=produtospass -d -p 3306:3306 mysql
