@@ -19,9 +19,14 @@ public class TratadorDeErros {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new DadosErroValidacao("id_produto", "Produto não cadastrado"));
     }
 
+    @ExceptionHandler(ProdutoNaoCadastradoException.class)
+    public ResponseEntity trataProdutoNaoCadastrado(ProdutoNaoCadastradoException ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new DadosErroValidacao(ex.getCampo(), ex.getMensagem()));
+    }
+
     @ExceptionHandler(ErroDeValidacaoException.class)
     public ResponseEntity tratarErro409(ErroDeValidacaoException ex){
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new DadosErroValidacao(ex.campo, ex.mensagem));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new DadosErroValidacao(ex.getCampo(), ex.getMensagem()));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -34,10 +39,17 @@ public class TratadorDeErros {
         List<FieldError> erros = ex.getFieldErrors();
         return ResponseEntity.badRequest().body(erros.stream().map(DadosErroValidacao::new).toList());
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity trataErro500(Exception ex){
+        ex.printStackTrace();
+        return ResponseEntity.internalServerError().body(new DadosErroValidacao(null, "Houve um erro interno. Por favor contatar a equipe técnica caso o erro persista!"));
+    }
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private record DadosErroValidacao(String campo, String mensagem) {
         public DadosErroValidacao(FieldError erro) {
             this(erro.getField(), erro.getDefaultMessage());
         }
     }
+
 }

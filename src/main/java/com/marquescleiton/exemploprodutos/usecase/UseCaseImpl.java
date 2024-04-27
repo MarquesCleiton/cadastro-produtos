@@ -1,4 +1,4 @@
-package com.marquescleiton.exemploprodutos.usecase.impl;
+package com.marquescleiton.exemploprodutos.usecase;
 
 import com.marquescleiton.exemploprodutos.adapter.ProdutoAdapter;
 import com.marquescleiton.exemploprodutos.domain.dto.DadosAtualizacaoSituacaoFornecedor;
@@ -10,7 +10,7 @@ import com.marquescleiton.exemploprodutos.domain.enums.SituacaoProdutoEnum;
 import com.marquescleiton.exemploprodutos.exception.ProdutoJaCadastradoException;
 import com.marquescleiton.exemploprodutos.exception.SituacaoAtualizacaoInvalidaException;
 import com.marquescleiton.exemploprodutos.exception.SituacaoInvalidaException;
-import com.marquescleiton.exemploprodutos.service.ProdutoService;
+import com.marquescleiton.exemploprodutos.service.produto.ProdutoService;
 import com.marquescleiton.exemploprodutos.usecase.UseCase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,28 +29,24 @@ public class UseCaseImpl implements UseCase {
     @Override
     public Produto cadastrarProduto(DadosProduto dadosProduto) {
 
-        validarSeProdutoJaExiste(dadosProduto.id_produto());
+        validarSeProdutoJaExistePeloCodigoBarras(dadosProduto.codigo_barras());
 
         Produto produto = produtoAdapter.dadosProdudoDtoToNovoProdutoEntity(dadosProduto);
-        produto = produtoService.cadastrarProduto(produto);
 
-        return produto;
+        return produtoService.cadastrarProduto(produto);
     }
 
-    public Produto buscarProdutoPeloId(Long idProduto){
-        return produtoService.buscarProdutoPeloId(idProduto);
+
+    public Produto buscarProdutoPeloCodigoBarras(String codigoBarras){
+        return produtoService.buscarProdutoPeloCodigoBarras(codigoBarras);
     }
 
     @Override
     public Produto atualizarStatusProduto(DadosStatus dadosStatus) throws SituacaoInvalidaException {
 
-        SituacaoProdutoEnum situacao = SituacaoProdutoEnum.getByCodigo(dadosStatus.codigo_situacao());
+        SituacaoProdutoEnum situacao = ValidaSeSituacaoProdutoExiste(dadosStatus.codigo_situacao());
 
-        if(situacao == null){
-            throw new SituacaoInvalidaException("codigo_situacao", "Código de situação " + dadosStatus.codigo_situacao() + " inválido");
-        }
-
-        Produto produto = produtoService.buscarProdutoPeloId(dadosStatus.id_produto());
+        Produto produto = produtoService.buscarProdutoPeloCodigoBarras(dadosStatus.codigo_barras());
 
         if(Boolean.FALSE.equals(isSituacaoValidaAtualizacao(produto, situacao))){
             throw new SituacaoAtualizacaoInvalidaException("codigo_situacao", "Situação atual do produto não permite esta atualização");
@@ -61,22 +57,38 @@ public class UseCaseImpl implements UseCase {
         return produtoService.cadastrarProduto(produto);
     }
 
+    private SituacaoProdutoEnum ValidaSeSituacaoProdutoExiste(Integer codigoSituacao) {
+        SituacaoProdutoEnum situacao = SituacaoProdutoEnum.getByCodigo(codigoSituacao);
+
+        if(situacao == null){
+            throw new SituacaoInvalidaException("codigo_situacao", "Código de situação " + codigoSituacao + " inválido");
+        }
+        return situacao;
+    }
+
     @Override
     public Produto cadastrarNovoForcedor(DadosForncedor dadosForncedor) {
 
-        validaFornecedorJaCadastrado(dadosForncedor.id_fornecedor());
+        //validaFornecedorJaCadastrado(dadosForncedor.id_fornecedor(), dadosForncedor.codigo_barras());
+        //validarSeProdutoJaExiste();
 
-        Produto produto = produtoService.buscarProdutoPeloId(dadosForncedor.id_produto());
 
-        produto.addNovoFornecedor(dadosForncedor.id_fornecedor());
+        Fornecedor fornecedor = Fornecedor.builder()
+                //.idProduto(dadosForncedor.id_produto())
+                .idFornecedor(dadosForncedor.id_fornecedor())
+                .dataCriacao(LocalDateTime.now())
+                .build();
 
-        return produtoService.cadastrarProduto(produto);
+        return produtoService.cadastrarNovoFornecedor(fornecedor);
     }
 
     @Override
     public Produto buscarFornecedor(Long idFornecedor) {
+
         Fornecedor fornecedor = produtoService.buscaFornecedorPeloId(idFornecedor);
-        return fornecedor.getProduto();
+        Produto produto = null; //produtoService.buscarProdutoPeloCodigoBarras(fornecedor.getIdProduto());
+
+        return produto;
     }
 
     @Override
@@ -86,7 +98,7 @@ public class UseCaseImpl implements UseCase {
 
         Fornecedor fornecedor = produtoService.buscaFornecedorPeloId(situacaoFornecedor.id_fornecedor());
 
-        validaProdutoAtivo(fornecedor.getProduto());
+        //validaProdutoAtivo(fornecedor.getProduto());
 
         fornecedor.getSituacoesFornecedor().add(
                 SituacaoFornecedor.builder()
@@ -95,20 +107,22 @@ public class UseCaseImpl implements UseCase {
                 .build());
 
 
-        return produtoService.cadastrarProduto(fornecedor.getProduto());
+        //return produtoService.cadastrarProduto(fornecedor.getProduto());
+        return null;
     }
 
     private void validaProdutoAtivo(Produto produto){
             SituacaoProdutoEnum situacaoProdutoEnum =
                     SituacaoProdutoEnum.getByCodigo(getUltimaSituacaoProduto(produto.getSituacoesProduto()).getSituacaoId().getCodigoSituacao());
 
-        if(Boolean.FALSE.equals(situacaoProdutoEnum.equals(SituacaoProdutoEnum.CADASTRADO))){
+        if(Boolean.FALSE.equals(situacaoProdutoEnum.equals(SituacaoProdutoEnum.EM_ESTOQUE))){
             throw new ProdutoJaCadastradoException(null, " Situação do Produto " + produto.getIdProduto() + " não permite atualização");
         }
     }
-    private void validaFornecedorJaCadastrado(Long idFornecedor) {
-        if(Boolean.TRUE.equals(produtoService.isForncedorCadastrado(idFornecedor))){
-            throw new ProdutoJaCadastradoException(null, "Forncedor " + idFornecedor+ " já cadastrado");
+    private void validaFornecedorJaCadastrado(Long idFornecedor, String codigoBarrasProduto) {
+
+        if(Boolean.TRUE.equals(produtoService.isForncedorCadastrado(idFornecedor, codigoBarrasProduto))){
+            throw new ProdutoJaCadastradoException(null, "Forncedor " + idFornecedor+ " já cadastrado para o produto com o numéro de barras" + codigoBarrasProduto);
         }
     }
 
@@ -124,14 +138,19 @@ public class UseCaseImpl implements UseCase {
                 && !situacaoProdutoEnum.equals(SituacaoProdutoEnum.CADASTRADO);
     }
 
-    private void validarSeProdutoJaExiste(Long idProduto){
-        if(Boolean.TRUE.equals(produtoService.isProdutoCadastrado(idProduto))){
-            throw new ProdutoJaCadastradoException(null, "Produto " + idProduto + " já cadastrado");
+    private void validarSeProdutoJaExistePeloCodigoBarras(String codigoBarras){
+        if(Boolean.TRUE.equals(produtoService.isProdutoCadastradoCodigoBarras(codigoBarras))){
+            throw new ProdutoJaCadastradoException(null, "Produto com o código de barras" + codigoBarras + " já cadastrado");
         }
     }
 
+    private void validarSeProdutoJaExistePelo(Long idProduto){
+        if(Boolean.TRUE.equals(produtoService.isProdutoCadastradoPeloId(idProduto))){
+            throw new ProdutoJaCadastradoException(null, "Produto " + idProduto + " já cadastrado");
+        }
+    }
     private void validarSeProdutoNaoExiste(Long idProduto){
-        if(Boolean.FALSE.equals(produtoService.isProdutoCadastrado(idProduto))){
+        if(Boolean.FALSE.equals(produtoService.isProdutoCadastradoPeloId(idProduto))){
             throw new ProdutoJaCadastradoException(null, "Produto " + idProduto+ " não cadastrado");
         }
     }

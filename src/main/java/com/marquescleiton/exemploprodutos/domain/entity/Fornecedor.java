@@ -1,6 +1,6 @@
 package com.marquescleiton.exemploprodutos.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
@@ -27,11 +27,14 @@ public class Fornecedor {
     @Id
     @Column(name = "id_fornecedor")
     private Long idFornecedor;
+    @Column(name = "codigo_barras")
+    @JsonIgnore
+    String codigoBarrasProduto;
 
-    @ManyToOne
-    @JsonBackReference
-    @JoinColumn(name = "id_produto")
-    private Produto produto;
+//    @ManyToOne
+//    @JsonBackReference
+//    @JoinColumn(name = "id_produto")
+//    private Produto produto;
 
     @Column(name = "data_criacao")
     private LocalDateTime dataCriacao;

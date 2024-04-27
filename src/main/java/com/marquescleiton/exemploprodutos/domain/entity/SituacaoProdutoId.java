@@ -18,7 +18,7 @@ import java.io.Serializable;
 public class SituacaoProdutoId implements Serializable {
     @ManyToOne
     @JsonBackReference
-    @JoinColumn(name = "id_produto")
+    @JoinColumn(name = "codigo_barras")
     private Produto produto;
 
     @Column(name = "codigo_situacao")

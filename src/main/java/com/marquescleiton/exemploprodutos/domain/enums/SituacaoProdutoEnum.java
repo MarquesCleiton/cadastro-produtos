@@ -6,7 +6,8 @@ import lombok.Getter;
 @Getter
 public enum SituacaoProdutoEnum {
     CADASTRADO(1, "CADASTRADO"),
-    ESGOTADO(2, "ESGOTADO");
+    EM_ESTOQUE(2, "EM ESTOQUE"),
+    ESGOTADO(3, "ESGOTADO");
 
     private int codigo;
     private String descricao;
@@ -21,6 +22,6 @@ public enum SituacaoProdutoEnum {
                 return status;
             }
         }
-        throw new SituacaoInvalidaException("codigo_situacao", "Código de situação " + codigo + " inválido");
+        throw new SituacaoInvalidaException("codigo_situacao", "Código de situação " + codigo + " não existe");
     }
 }

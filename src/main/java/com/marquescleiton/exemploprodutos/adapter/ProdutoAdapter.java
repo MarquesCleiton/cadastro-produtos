@@ -14,8 +14,8 @@ public class ProdutoAdapter {
     public Produto dadosProdudoDtoToNovoProdutoEntity(DadosProduto dadosProduto){
         LocalDateTime datahoraAtual = LocalDateTime.now();
         Produto produto = Produto.builder()
-                .idProduto(dadosProduto.id_produto())
                 .codigoBarras(dadosProduto.codigo_barras())
+                .idProduto(dadosProduto.id_produto())
                 .nomeProduto(dadosProduto.nome_produto())
                 .dataCriacao(datahoraAtual)
                 .build();

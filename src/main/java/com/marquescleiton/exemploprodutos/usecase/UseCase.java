@@ -10,7 +10,7 @@ import com.marquescleiton.exemploprodutos.exception.SituacaoInvalidaException;
 public interface UseCase {
     public Produto cadastrarProduto(DadosProduto dadosProduto);
 
-    Produto buscarProdutoPeloId(Long idProduto);
+    Produto buscarProdutoPeloCodigoBarras(String codigoBarras);
 
     Produto atualizarStatusProduto(DadosStatus dadosStatus) throws SituacaoInvalidaException;
 
