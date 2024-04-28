@@ -3,6 +3,7 @@ package com.marquescleiton.exemploprodutos.domain.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.marquescleiton.exemploprodutos.domain.enums.SituacaoFornecedorEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -46,4 +47,14 @@ public class Fornecedor {
             fetch = FetchType.EAGER)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<SituacaoFornecedor> situacoesFornecedor = new ArrayList<>();
+
+    public void addAtualizacaoSituacao(SituacaoFornecedorEnum situacaoFornecedorEnum){
+
+        SituacaoFornecedor situacaoFornecedor = SituacaoFornecedor.builder()
+                .situacaoFornecedorId(new SituacaoFornecedorID(this, situacaoFornecedorEnum.getCodigo()))
+                .dataCriacao(LocalDateTime.now())
+                .build();
+
+        this.situacoesFornecedor.add(situacaoFornecedor);
+    }
 }

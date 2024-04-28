@@ -21,6 +21,6 @@ public enum SituacaoFornecedorEnum {
                 return status;
             }
         }
-        throw new SituacaoInvalidaException("codigo_situacao", "Código de situação " + codigo + " inválido");
+        throw new SituacaoInvalidaException(null, "Código de situação " + codigo + " não existe");
     }
 }

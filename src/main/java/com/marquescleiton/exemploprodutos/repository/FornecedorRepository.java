@@ -10,8 +10,6 @@ import java.util.Optional;
 
 public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
 
-    //public Boolean existsByIdFornecedorAndIdProduto(Long idFornecedor, Long idProduto);
-
     public Boolean existsByIdFornecedorAndCodigoBarrasProduto(Long idFornecedor, String codigoBarrasProduto);
     @Query(value = "select * from fornecedor f " +
             "JOIN produto p ON f.codigo_barras = p.codigo_barras " +
@@ -21,6 +19,4 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
 
     public List<Fornecedor> findAllFornecedorByCodigoBarrasProduto(String codigoBarrasProduto);
 
-    //public Boolean existsByFornecedorIDIdFornecedor(Long idFornecedor);
-    //public Optional<Fornecedor> findByFornecedorIDIdFornecedor(Long idFornecedor);
 }

@@ -8,6 +8,7 @@ import com.marquescleiton.exemploprodutos.domain.dto.DadosProduto;
 import com.marquescleiton.exemploprodutos.domain.dto.DadosStatus;
 import com.marquescleiton.exemploprodutos.domain.entity.Fornecedor;
 import com.marquescleiton.exemploprodutos.domain.entity.Produto;
+import com.marquescleiton.exemploprodutos.domain.enums.SituacaoFornecedorEnum;
 import com.marquescleiton.exemploprodutos.domain.enums.SituacaoProdutoEnum;
 import com.marquescleiton.exemploprodutos.service.fornecedor.FornecedorService;
 import com.marquescleiton.exemploprodutos.service.produto.ProdutoService;
@@ -17,7 +18,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
+import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -37,8 +38,7 @@ public class ControllerUseCaseImpl implements ControllerUseCase{
     @Override
     public Produto cadastrarProduto(DadosProduto dadosProduto) {
         produtoUseCase.validarProdutoJaCadastrado(dadosProduto.codigo_barras());
-        ProdutoAdapter produtoAdapter = new ProdutoAdapter();
-        Produto produto = produtoAdapter.dadosProdudoDtoToNovoProdutoEntity(dadosProduto);
+        Produto produto = new ProdutoAdapter().dadosProdudoDtoToNovoProdutoEntity(dadosProduto);
 
         return produtoService.cadastrarProduto(produto);
     }
@@ -50,11 +50,12 @@ public class ControllerUseCaseImpl implements ControllerUseCase{
 
     @Override
     public Produto atualizarProduto(DadosStatus dadosStatus) {
+        Integer codigoSituacaoAtualizacaoProduto = Integer.parseInt(dadosStatus.codigo_situacao());
 
-        SituacaoProdutoEnum situacaoProduto = SituacaoProdutoEnum.getByCodigo(dadosStatus.codigo_situacao());
+        SituacaoProdutoEnum situacaoProduto = SituacaoProdutoEnum.getByCodigo(codigoSituacaoAtualizacaoProduto);
         Produto produto = produtoService.buscarProdutoPeloCodigoBarras(dadosStatus.codigo_barras());
         produtoUseCase.validarSituacaoAtualizacaoPermitida(produto, situacaoProduto);
-        produto.addSituacao(dadosStatus.codigo_situacao());
+        produto.addSituacao(codigoSituacaoAtualizacaoProduto);
 
         return produtoService.cadastrarProduto(produto);
     }
@@ -63,21 +64,36 @@ public class ControllerUseCaseImpl implements ControllerUseCase{
     public Produto cadastrarFornecedor(DadosForncedor dadosForncedor) {
 
         Produto produto = produtoService.buscarProdutoMaisRecentePeloIdProduto(dadosForncedor.id_produto());
+        fornecedorUseCase.validarSituacaoProdutoPermiteFornecedor(produto);
         fornecedorUseCase.validarSeFornecedorJaCadastradoParaproduto(dadosForncedor.id_fornecedor(), produto.getCodigoBarras());
         Fornecedor fornecedor = new FornecedorAdapter().dadosFornecedorDtoToNovoFornecedorEntity(dadosForncedor.id_fornecedor(), produto.getCodigoBarras());
-        fornecedorService.cadastrarNovoFornecedor(fornecedor);
-        produto.setFornecedores(Collections.singletonList(fornecedor));
+        fornecedorService.cadastrarFornecedor(fornecedor);
+
+        return produtoService.buscarProdutoPeloCodigoBarras(produto.getCodigoBarras());
+    }
+
+    @Override
+    public Produto buscarFornecedor(Long idFornecedor) {
+
+        Fornecedor fornecedor = fornecedorService.buscarFornecedorPeloId(idFornecedor);
+        Produto produto = produtoService.buscarProdutoPeloCodigoBarras(fornecedor.getCodigoBarrasProduto());
+        List<Fornecedor> fornecedores = fornecedorService.buscarFornecedoresPeloCodigoBarrasProduto(produto.getCodigoBarras());
+        produto.setFornecedores(fornecedores);
 
         return produto;
     }
 
     @Override
-    public Produto buscarFornecedor(Long idFornecedor) {
-        return null;
-    }
-
-    @Override
     public Produto atualizarFornecedor(DadosAtualizacaoSituacaoFornecedor situacaoFornecedor) {
-        return null;
+
+        Fornecedor fornecedor = fornecedorService.buscarFornecedorPeloId(Long.parseLong(situacaoFornecedor.id_fornecedor()));
+        SituacaoFornecedorEnum situacaoAtualizacaoFornecedorEnum = SituacaoFornecedorEnum.getByCodigo(Integer.parseInt(situacaoFornecedor.codigo_situacao()));
+        fornecedorUseCase.validarSeSituacaoFornecedorPermiteAtualizacao(fornecedor, situacaoAtualizacaoFornecedorEnum);
+        Produto produto = produtoService.buscarProdutoPeloCodigoBarras(fornecedor.getCodigoBarrasProduto());
+        fornecedorUseCase.validarSituacaoProdutoPermiteFornecedor(produto);
+        fornecedor.addAtualizacaoSituacao(situacaoAtualizacaoFornecedorEnum);
+        fornecedorService.cadastrarFornecedor(fornecedor);
+
+        return produtoService.buscarProdutoPeloCodigoBarras(fornecedor.getCodigoBarrasProduto());
     }
 }

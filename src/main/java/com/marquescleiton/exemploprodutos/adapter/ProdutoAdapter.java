@@ -15,7 +15,7 @@ public class ProdutoAdapter {
         LocalDateTime datahoraAtual = LocalDateTime.now();
         Produto produto = Produto.builder()
                 .codigoBarras(dadosProduto.codigo_barras())
-                .idProduto(dadosProduto.id_produto())
+                .idProduto(Long.parseLong(dadosProduto.id_produto()))
                 .nomeProduto(dadosProduto.nome_produto())
                 .dataCriacao(datahoraAtual)
                 .build();

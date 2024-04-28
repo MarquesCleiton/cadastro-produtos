@@ -9,8 +9,8 @@ public enum SituacaoProdutoEnum {
     EM_ESTOQUE(2, "EM ESTOQUE"),
     ESGOTADO(3, "ESGOTADO");
 
-    private int codigo;
-    private String descricao;
+    private final int codigo;
+    private final String descricao;
     SituacaoProdutoEnum(int codigo, String descricao) {
         this.codigo = codigo;
         this.descricao = descricao;
@@ -22,6 +22,6 @@ public enum SituacaoProdutoEnum {
                 return status;
             }
         }
-        throw new SituacaoInvalidaException("codigo_situacao", "Código de situação " + codigo + " não existe");
+        throw new SituacaoInvalidaException(null, "Código de situação " + codigo + " não existe");
     }
 }

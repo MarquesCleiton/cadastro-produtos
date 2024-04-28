@@ -11,5 +11,5 @@ public record DadosStatus(
         String codigo_barras,
         @Digits(integer = 2, message = "deve ter no máximo 2 dígitos", fraction = 0)
         @NotNull
-        Integer codigo_situacao
+        String codigo_situacao
 ) { }
